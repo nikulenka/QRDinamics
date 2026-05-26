@@ -92,8 +92,10 @@ export default function Dashboard() {
       
       if (expiresAtInput) {
         payload.expiresAt = new Date(expiresAtInput).toISOString();
-      } else {
-        payload.expiresAt = null; 
+      } else if (isEdit) {
+        // Use deleteField to remove the field from Firestore if it was cleared
+        const { deleteField } = await import('firebase/firestore');
+        payload.expiresAt = deleteField();
       }
 
       if (isEdit) {
