@@ -1,0 +1,25 @@
+{
+  "entities": {
+    "Link": {
+      "title": "Link",
+      "description": "A shortened redirect link",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Link title" },
+        "destination": { "type": "string", "description": "The target URL" },
+        "ownerId": { "type": "string", "description": "The user ID of the creator" },
+        "createdAt": { "type": "timestamp" },
+        "updatedAt": { "type": "timestamp" },
+        "expiresAt": { "type": "string", "description": "ISO date string for expiry" },
+        "clicks": { "type": "number", "description": "Total scan count" }
+      },
+      "required": ["destination", "ownerId", "clicks"]
+    }
+  },
+  "firestore": {
+    "/links/{linkId}": {
+      "schema": { "$ref": "#/entities/Link" },
+      "description": "Stores reduced URLs for redirection"
+    }
+  }
+}

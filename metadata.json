@@ -1,0 +1,6 @@
+{
+  "name": "Dynamic QR Code Manager",
+  "description": "Generate dynamic QR codes and update their destination URLs at any time.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

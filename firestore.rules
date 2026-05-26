@@ -1,0 +1,45 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null; }
+
+    function isValidLink(data) {
+      return data.keys().hasAll(['destination', 'ownerId', 'clicks']) &&
+        data.destination is string && data.destination.size() > 0 && data.destination.size() <= 2000 &&
+        data.ownerId is string && data.ownerId == request.auth.uid &&
+        data.clicks is number &&
+        (!('title' in data) || (data.title is string && data.title.size() <= 100)) &&
+        (!('expiresAt' in data) || (data.expiresAt is string && data.expiresAt.size() <= 50)) &&
+        (!('createdAt' in data) || data.createdAt is timestamp) &&
+        (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    match /links/{linkId} {
+      allow get: if true;
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      
+      allow create: if isSignedIn() &&
+        isValidId(linkId) &&
+        isValidLink(incoming()) &&
+        incoming().clicks == 0;
+        
+      allow update: if (isValidId(linkId) && (
+        (isSignedIn() && incoming().ownerId == request.auth.uid && existing().ownerId == request.auth.uid && isValidLink(incoming()) && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'destination', 'updatedAt', 'expiresAt', 'clicks'])) ||
+        (incoming().diff(existing()).affectedKeys().hasOnly(['clicks']) && incoming().clicks == existing().clicks + 1)
+      ));
+      
+      allow delete: if isSignedIn() && existing().ownerId == request.auth.uid;
+    }
+  }
+}
